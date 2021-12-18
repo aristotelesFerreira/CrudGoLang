@@ -1,17 +1,17 @@
 package controllers
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/aristotelesFerreira/crud_go_lang/api/responses"
 )
 
 func (server *Server) Uploadfile(w http.ResponseWriter, r *http.Request) {
-	// Maximum MB supported
 	r.ParseMultipartForm(10 << 20)
 
-	file, _, err := r.FormFile("myFile")
+	file, handler, err := r.FormFile("myFile")
 
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
@@ -21,21 +21,20 @@ func (server *Server) Uploadfile(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	// Create File
-	tempFile, err := ioutil.TempFile("temp-images", "upload-*.png")
+	dst, err := os.Create(handler.Filename)
 
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
 	}
+	defer dst.Close()
 
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
+	// Copy the uploaded file to the created file on the filesystem
+	if _, err := io.Copy(dst, file); err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
+
 		return
 	}
-
-	tempFile.Write(fileBytes)
-
 	responses.JSON(w, http.StatusOK, "Successfully Uploaded File")
 
 }

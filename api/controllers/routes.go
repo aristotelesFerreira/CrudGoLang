@@ -14,4 +14,7 @@ func (s *Server) initializeRoutes() {
 	// Login Route
 	s.Router.HandleFunc("/login", middlewares.SetMiddlewareJSON(s.Login)).Methods("POST")
 
+	// Upload Files
+	s.Router.HandleFunc("/files", middlewares.SetMiddlewareJSON(s.Uploadfile)).Methods("POST")
+
 }
